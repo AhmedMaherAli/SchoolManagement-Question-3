@@ -1,0 +1,55 @@
+@page
+@model OrderHub.Pages.ConfirmOrderModel
+
+@* Question 3.2 and 3.3 solutions *@
+@* FIX 1: Removed @Html.Raw to safely encode the string and prevent XSS *@
+<h1>Order for @Model.SchoolName</h1>
+
+<form method="post" id="orderForm">
+    @* FIX 2: Using a 'for' loop ensures perfect Model Binding on POST *@
+    @for (int i = 0; i < Model.Lines.Count; i++)
+    {
+        <div class="order-line">
+            @* Hidden inputs ensure the backend knows WHICH items are being updated *@
+            <input type="hidden" asp-for="Lines[i].Id" />
+            <input type="hidden" asp-for="Lines[i].UnitPrice" class="unit-price" />
+
+            <span>@Model.Lines[i].Sku — @Model.Lines[i].Embroidery</span>
+            
+            @* Tag helper automatically creates name="Lines[0].Quantity" *@
+            <input asp-for="Lines[i].Quantity" type="number" min="0" class="qty-input" />
+            
+            <span class="line-total">£@(Model.Lines[i].UnitPrice * Model.Lines[i].Quantity)</span>
+        </div>
+    }
+    
+    <div style="font-size:18px;color:#333">
+        Subtotal: <span id="displaySubtotal">£@Model.Subtotal</span>
+    </div>
+    
+    <button type="submit">Confirm</button>
+</form>
+
+@* FIX 3: Clean split! Client-side JS handles live updates without hitting the server *@
+@section Scripts {
+    <script>
+        document.addEventListener('input', function (e) {
+            // Only trigger if they changed a quantity box
+            if (e.target.classList.contains('qty-input')) {
+                let newSubtotal = 0;
+                
+                // Recalculate totals in the browser UI immediately
+                document.querySelectorAll('.order-line').forEach(row => {
+                    const price = parseFloat(row.querySelector('.unit-price').value);
+                    const qty = parseInt(row.querySelector('.qty-input').value) || 0;
+                    
+                    const lineTotal = price * qty;
+                    row.querySelector('.line-total').innerText = '£' + lineTotal.toFixed(2);
+                    newSubtotal += lineTotal;
+                });
+                
+                document.getElementById('displaySubtotal').innerText = '£' + newSubtotal.toFixed(2);
+            }
+        });
+    </script>
+}
