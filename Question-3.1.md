@@ -7,4 +7,5 @@
     this generates massive amounts of unnecessary server traffic (effectively acting as a self-inflicted DDoS attack) and creates a deeply frustrating,
     broken user experience.
 
-
+- Line: </input name="qty_@line.Id" value="@line.Quantity" />
+    By naming the inputs dynamically (qty_14, qty_22), this page completely breaks ASP.NET Core's powerful built-in Model Binding. When the form is submitted, the        backend won't easily map this to a clean List<OrderLine> object.
